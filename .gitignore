@@ -100,36 +100,36 @@ ENV/
 # mypy
 .mypy_cache/
 
-# PyCharm
+# その他：IDE, Editor
 .idea
+.vscode
+# その他：OS
+.DS_Store
 
 
 
 
-# dataset
+
+###  データセット関係  ###
 dataset/VOCdevkit
 dataset/inference_output/
 dataset/export_output
 
-preprocess/annotimg
-preprocess/annotxml
-preprocess/img
+*.record
+
+# preprocess/**/*.png
+# preprocess/**/*.jpg
+# preprocess/annotxml/*.xml
+preprocess/img/result
 
 
-# model
+###  モデル関係  ###
 model50
 model
-*.record
 models
 ini_checkpoints
-*.graph
-checkpoint
-model.ckpt-*
 
 *.zip
-
-
-# その他
-.DS_Store
+*.tar.gz
 
 
