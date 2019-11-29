@@ -32,21 +32,26 @@ TensorFlow (r1.6)以降と Python 3をお使いください。
     で、セグメンテーション画像ファイルが`preprocess/annotimg`に生成される。
 
 
-## モデル（転移学習用） を準備
+### モデル（転移学習用） を準備
 1. `ini_checkpoints/resnet_v2_50` ディレクトリを作る。
 2. tensorflowの[slim](https://github.com/tensorflow/models/tree/master/research/slim)から[resnet_v2_50_2017_04_14.tar.gz](http://download.tensorflow.org/models/resnet_v2_50_2017_04_14.tar.gz) をダウンロードして、1. に配置する。
 
 
-## Training
+### Training
 ```bash
 $ python3 create_pascal_tf_record.py
 $ python3 train_3class_50.py
 ```
 を実行すると学習が始まります。
 
-### 技術的な話
+## 技術的な話
 - `create_pascal_tf_record.py` で TFRecode を作成している。
 - 
 
 
+
+# original リポジトリ情報
+- [ndl-lab](https://github.com/ndl-lab)
+  - [tensorflow-deeplab-v3-plus](https://github.com/ndl-lab/tensorflow-deeplab-v3-plus)
+  - [NDLDocLデータセット](https://github.com/ndl-lab/layout-dataset)
 
