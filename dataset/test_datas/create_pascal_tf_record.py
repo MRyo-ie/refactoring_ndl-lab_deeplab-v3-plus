@@ -9,7 +9,6 @@ import argparse
 import io
 import os
 import sys
-
 import PIL.Image
 import tensorflow as tf
 
@@ -18,27 +17,26 @@ from utils import dataset_util
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--data_dir', type=str, default='./preprocess',
+parser.add_argument('--data_dir', type=str, default='.',
                     help='Path to the directory containing the PASCAL VOC data.')
 
-parser.add_argument('--output_path', type=str, default='./preprocess',
+parser.add_argument('--output_path', type=str, default='.',
                     help='Path to the directory to create TFRecords outputs.')
 
-parser.add_argument('--train_data_list', type=str, default='./preprocess/train.txt',
+parser.add_argument('--train_data_list', type=str, default='./train.txt',
                     help='Path to the file listing the training data.')
 
-parser.add_argument('--valid_data_list', type=str, default='./preprocess/val.txt',
+parser.add_argument('--valid_data_list', type=str, default='./val.txt',
                     help='Path to the file listing the validation data.')
 
-parser.add_argument('--image_data_dir', type=str, default='img',
+parser.add_argument('--image_data_dir', type=str, default='./img',
                     help='The directory containing the image data.')
 
-parser.add_argument('--label_data_dir', type=str, default='annotimg',
+parser.add_argument('--label_data_dir', type=str, default='./annotimg',
                     help='The directory containing the augmented label data.')
 
 
-def dict_to_tf_example(image_path,
-                       label_path):
+def dict_to_tf_example(image_path, label_path):
     """Convert image and label to tf.Example proto.
 
     Args:
@@ -133,8 +131,8 @@ def main(unused_argv):
         raise ValueError("Missing Augmentation label directory. "
                          "You may download the augmented labels from the link (Thanks to DrSleep): "
                          "https://www.dropbox.com/s/oeu149j8qtbs1x0/SegmentationClassAug.zip")
-    train_examples = dataset_util.read_examples_list(FLAGS.train_data_list)  # default='./preprocess/train.txt'
-    val_examples = dataset_util.read_examples_list(FLAGS.valid_data_list)  # ./preprocess/val.txt
+    train_examples = dataset_util.read_examples_list(FLAGS.train_data_list)  # default='./train.txt'
+    val_examples = dataset_util.read_examples_list(FLAGS.valid_data_list)  # ./val.txt
 
     train_output_path = os.path.join(FLAGS.output_path, 'voc_train.record')
     val_output_path = os.path.join(FLAGS.output_path, 'voc_val.record')
@@ -143,6 +141,14 @@ def main(unused_argv):
     create_tf_record(val_output_path, image_dir, label_dir, val_examples)
 
 
+FLAGS
+# setup_dataset.py から実行する用。
+def run(*_args):
+    tf.logging.set_verbosity(tf.logging.INFO)
+    FLAGS, unparsed = parser.parse_known_args(_args)
+    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+
+# 手動実行用。
 if __name__ == '__main__':
     tf.logging.set_verbosity(tf.logging.INFO)
     FLAGS, unparsed = parser.parse_known_args()

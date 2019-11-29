@@ -18,6 +18,7 @@ from tensorflow.python import debug as tf_debug
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "1"
+# GPU を使う場合は '0' にする。
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser()

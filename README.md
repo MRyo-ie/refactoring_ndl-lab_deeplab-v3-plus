@@ -5,7 +5,13 @@
 [rishizek's repo](https://github.com/rishizek/tensorflow-deeplab-v3-plus).
 
 ## Setup
-TensorFlow (r1.6)以降と Python 3をお使いください。
+- 推奨環境
+  - Python3
+  - TensorFlow (r1.6)以降
+- pip
+  ```
+  $ pip3 install -r requirements.txt
+  ```
 
 ## Predict
 1. model50ディレクトリを作る。
