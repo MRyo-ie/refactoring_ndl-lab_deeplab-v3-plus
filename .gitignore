@@ -111,12 +111,7 @@ ENV/
 
 
 ###  データセット関係  ###
-data_in/**/*.png
-data_in/**/*.jpg
-data_in/**/*.xml
-!data_in/test_datas/annot_img
-!data_in/test_datas/img
-!data_in/test_datas/xml
+data_in/user_datas/
 *.record
 
 data_out/**/*.png

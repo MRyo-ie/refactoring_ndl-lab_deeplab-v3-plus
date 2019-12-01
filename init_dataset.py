@@ -1,9 +1,8 @@
 """
 データセット（Pascal VOC） の
     ・ダウンロード
-    ・dataset/learn_dir/ にコピー
+    ・data_in/user_datas/【データセット名】/  にコピー
 まで行う。
-
 """
 
 import argparse
@@ -14,8 +13,8 @@ import subprocess
 import sys
 from tqdm import tqdm
 
-from dataset import create_pascal_tf_record
-from dataset import draw_annot_img
+from data_in import create_pascal_tf_record
+from data_in import draw_annot_img
 
 parser = argparse.ArgumentParser()
 parser.add_argument('org_data_dir', type=str,
@@ -55,9 +54,9 @@ if __name__ == '__main__':
         print('[Error] Pascal VOC データが見つかりませんでした。')
         sys.exit(1)
     
-    ###  dataset/【データ名】 に annot_img などのディレクトリを作成  ###
+    ###  data_in/【データ名】 に annot_img などのディレクトリを作成  ###
     # python スクリプトのある場所に移動
-    os.chdir(os.path.join(cd, 'dataset'))
+    os.chdir(os.path.join(cd, 'data_in', 'user_datas'))
     # data_dir がすでにある場合は、削除する。（-m でマージ：削除しない）
     if os.path.exists(args.data_dir_name) and not args.merge:
         shutil.rmtree(args.data_dir_name)
@@ -70,7 +69,7 @@ if __name__ == '__main__':
         os.mkdir('xml')
         os.mkdir('img')
     
-    ###  dataset/ 以下にコピー  ###
+    ###  data_in/ 以下にコピー  ###
     print('[Info] xml のコピーを開始します')
     for xml_fpath in tqdm(xml_list):
         shutil.copy(os.path.join(org_data_dir,xml_fpath), 'xml/')
@@ -78,10 +77,10 @@ if __name__ == '__main__':
     for img_fpath in tqdm(img_list):
         shutil.copy(os.path.join(org_data_dir,img_fpath), 'img/')
     
-    print('[Info] dataset/ へのコピーが完了しました。')
+    print('[Info] data_in/ へのコピーが完了しました。')
     if args.all_process:
         draw_annot_img.draw('.')
-        os.chdir(os.path.join(cd, 'dataset'))
+        os.chdir(os.path.join(cd, 'data_in', 'user_datas'))
         subprocess.run(['python3','create_pascal_tf_record.py', args.data_dir_name])
         print('[Info] 全ての工程が完了しました！\n    すぐに train.py を実行できます。')
     else:
