@@ -1,4 +1,4 @@
-# 図表抽出(Image extraction)
+# 表層メタ情報を deeplab v3+（Semantic Segmentaiton） で読み取る。
 
 このプログラムは以下のリポジトリ(MITライセンス)を改変して作成しています。
 
@@ -23,19 +23,34 @@
 
 ## Train
 ### データセット を準備
-1. pascal VOC形式の xml フォーマットで、
-    - 図表領域 ： "4_illustration"
-    - 資料全体 ： "1_overall"
+#### 自作データ の場合
+1. pascal VOC形式の xml フォーマットで、アノテーションを付与する。
 
-   のアノテーションを付与してください。
-
-2. 作成したxmlを`preprocess/annotxml`に、画像をpreprocess/imgに入れる。
-3. アノテーション結果画像を生成する。
+### データの移動
+1. ダウンロード／既存 のデータのパスを確認する。
+2. `dataset/【dataset名】/annotxml`に、画像を`dataset/【dataset名】/img`に入れる。
     ```
-    $ cd preprocess
-    $ python makeannotimage.py
+    $ python3 init_dataset.py  【dataset名】  【1. のパス】
+    ```
+    - オプションで以下を追加できる。
+      - `-m`
+        - `data/【dataset名】` ディレクトリがすでに存在する場合、削除しない（データをマージする）
+      - `-r`
+        - `【1. のパス】` 以下を、再帰的に探索する。
+      - `-a`
+        - 以降の `draw_annot_img.py`、`create_pascal_tf_record.py` まで同時に実行する。
+
+3. アノテーション画像を生成する。
+    ```
+    $ cd dataset
+    $ python draw_annot_img.py  【dataset名】
     ```
     で、セグメンテーション画像ファイルが`preprocess/annotimg`に生成される。
+4. tensorflow で扱い易いように、TFRecode に変換する。
+    ```
+    $ python create_pascal_tf_record.py  【dataset名】
+    ```
+
 
 
 ### モデル（転移学習用） を準備

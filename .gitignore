@@ -111,23 +111,23 @@ ENV/
 
 
 ###  データセット関係  ###
-dataset/VOCdevkit
-dataset/inference_output/
-dataset/export_output
-
+data_in/**/*.png
+data_in/**/*.jpg
+data_in/**/*.xml
+!data_in/test_datas/annot_img
+!data_in/test_datas/img
+!data_in/test_datas/xml
 *.record
 
-# preprocess/**/*.png
-# preprocess/**/*.jpg
-# preprocess/annotxml/*.xml
-preprocess/img/result
+data_out/**/*.png
+data_out/**/*.jpg
 
 
 ###  モデル関係  ###
 model50
 model
 models
-ini_checkpoints
+# ini_checkpoints
 
 *.zip
 *.tar.gz
