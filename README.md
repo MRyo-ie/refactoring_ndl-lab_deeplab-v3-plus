@@ -28,7 +28,7 @@
 
 ### データの移動
 1. ダウンロード／既存 のデータのパスを確認する。
-2. `dataset/【dataset名】/annotxml`に、画像を`dataset/【dataset名】/img`に入れる。
+2. `data_in/【dataset名】/annotxml`に、画像を`data_in/【dataset名】/img`に入れる。
     ```
     $ python3 init_dataset.py  【dataset名】  【1. のパス】
     ```
@@ -37,15 +37,13 @@
         - `data/【dataset名】` ディレクトリがすでに存在する場合、削除しない（データをマージする）
       - `-r`
         - `【1. のパス】` 以下を、再帰的に探索する。
-      - `-a`
-        - 以降の `draw_annot_img.py`、`create_pascal_tf_record.py` まで同時に実行する。
 
 3. アノテーション画像を生成する。
     ```
-    $ cd dataset
+    $ cd data_in
     $ python draw_annot_img.py  【dataset名】
     ```
-    で、セグメンテーション画像ファイルが`preprocess/annotimg`に生成される。
+    で、セグメンテーション画像ファイルが`data_in/annotimg`に生成される。
 4. tensorflow で扱い易いように、TFRecode に変換する。
     ```
     $ python create_pascal_tf_record.py  【dataset名】

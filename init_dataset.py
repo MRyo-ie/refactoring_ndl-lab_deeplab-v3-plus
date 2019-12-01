@@ -13,8 +13,6 @@ import subprocess
 import sys
 from tqdm import tqdm
 
-from data_in import create_pascal_tf_record
-from data_in import draw_annot_img
 
 parser = argparse.ArgumentParser()
 parser.add_argument('org_data_dir', type=str,
@@ -56,7 +54,10 @@ if __name__ == '__main__':
     
     ###  data_in/【データ名】 に annot_img などのディレクトリを作成  ###
     # python スクリプトのある場所に移動
-    os.chdir(os.path.join(cd, 'data_in', 'user_datas'))
+    user_datas_path = os.path.join(cd, 'data_in', 'user_datas')
+    if not os.path.exists(user_datas_path):
+        os.makedirs(user_datas_path)
+    os.chdir(user_datas_path)
     # data_dir がすでにある場合は、削除する。（-m でマージ：削除しない）
     if os.path.exists(args.data_dir_name) and not args.merge:
         shutil.rmtree(args.data_dir_name)
@@ -78,11 +79,5 @@ if __name__ == '__main__':
         shutil.copy(os.path.join(org_data_dir,img_fpath), 'img/')
     
     print('[Info] data_in/ へのコピーが完了しました。')
-    if args.all_process:
-        draw_annot_img.draw('.')
-        os.chdir(os.path.join(cd, 'data_in', 'user_datas'))
-        subprocess.run(['python3','create_pascal_tf_record.py', args.data_dir_name])
-        print('[Info] 全ての工程が完了しました！\n    すぐに train.py を実行できます。')
-    else:
-        print('[Info] README.md を参考に、次の工程に進んでください。')
+    print('[Info] README.md を参考に、次の工程に進んでください。')
 
