@@ -58,8 +58,8 @@ def dict_to_tf_example(image_path, label_path):
         encoded_label = fid.read()
     encoded_label_io = io.BytesIO(encoded_label)
     label = PIL.Image.open(encoded_label_io)
-    if label.format != 'PNG':
-        raise ValueError('Label format not PNG')
+    if label.format != 'JPEG':
+        raise ValueError('Label format not JPEG')
 
     if image.size != label.size:
         raise ValueError(
@@ -73,7 +73,7 @@ def dict_to_tf_example(image_path, label_path):
         'image/encoded': dataset_util.bytes_feature(encoded_jpg),
         'image/format': dataset_util.bytes_feature('jpg'.encode('utf8')),
         'label/encoded': dataset_util.bytes_feature(encoded_label),
-        'label/format': dataset_util.bytes_feature('png'.encode('utf8')),
+        'label/format': dataset_util.bytes_feature('jpg'.encode('utf8')),
     }))
     return example
 
