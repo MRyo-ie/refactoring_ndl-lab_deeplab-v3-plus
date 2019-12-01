@@ -95,7 +95,7 @@ def create_tf_record(output_filename,
         if idx % 100 == 0:
             tf.logging.info('On image %d of %d', idx, len(examples))
         image_path = os.path.join(image_dir, example)
-        label_path = os.path.join(label_dir, example[:-4]+".png")
+        label_path = os.path.join(label_dir, example)
 
         if not os.path.exists(image_path):
             tf.logging.warning(
