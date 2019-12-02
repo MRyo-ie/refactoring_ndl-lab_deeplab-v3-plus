@@ -22,38 +22,67 @@
     ```
 
 ## Train
-### データセット を準備
-#### 自作データ の場合
+### [準備] モデル（転移学習用）
+1. `./models/org_resnet/` ディレクトリを作る。
+    ```
+    $ mkdir -p  ./models/org_resnet/
+    ```
+2. （tensorflowの[slim](https://github.com/tensorflow/models/tree/master/research/slim)から）[resnet_v2_50_2017_04_14.tar.gz](http://download.tensorflow.org/models/resnet_v2_50_2017_04_14.tar.gz) を、1. にダウンロードする。
+    ```
+    $ cd  models/org_resnet/
+    $ wget http://download.tensorflow.org/models/resnet_v2_50_2017_04_14.tar.gz  ./models/org_resnet/
+    ```
+3. 解凍
+    ```
+    $ tar -zxvf  resnet_v2_50_2017_04_14.tar.gz
+    ```
+
+### [準備] データセット
+#### デモデータ（解体新書）
+- すぐに train を実行できる。
+    ```
+    $ python3 train.py  ./data_in/datas_test/
+    ```
+
+#### 他の or 自作の データの場合
 1. pascal VOC形式の xml フォーマットで、アノテーションを付与する。
 
 ### データの移動
-1. ダウンロード／既存 のデータのパスを確認する。
-2. `data_in/【dataset名】/xml`に、画像を`data_in/【dataset名】/img`に入れる。
-    ```
-    $ python3 init_dataset.py  【dataset名】  【1. のパス】
-    ```
-    - オプションで以下を追加できる。
-      - `-m`
-        - `data_in/【dataset名】` ディレクトリがすでに存在する場合、削除しない（データをマージする）
-      - `-r`
-        - `【1. のパス】` 以下を、再帰的に探索する。
+- 作業の流れ
+  - `data_in/datas/【dataset名】/` 以下に、`img`、`xml` ディレクトリを作って、そこにデータを入れる。
+  - `$ cd data_in` して、
+    - `draw_annot_img.py  datas/【dataset名】/`
+    - `create_pascal_tf_record.py  datas/【dataset名】/`
+  
+    を実行する。
 
-3. アノテーション画像を生成する。
-    ```
-    $ cd data_in
-    $ python draw_annot_img.py  【dataset名】
-    ```
-    で、セグメンテーション画像ファイルが`data_in/datas/【dataset名】/annot_img`に生成される。
-4. tensorflow で扱い易いように、TFRecode に変換する。
-    ```
-    $ python create_pascal_tf_record.py  【dataset名】
-    ```
+- 手動で行っても良いが、自動で行うスクリプトを作ったので、それを使っても良い。
+  1. データのパスを確認する。
+      - .zip や .tar.gz の場合は、先に解凍しておく。
+      - 相対バスを指定する場合は、この README.md がある位置を基準とする。
+  2. `data_in/datas/【dataset名】/xml`に、画像を`data_in/datas/【dataset名】/img`に入れる。
+      ```
+      $ python3 init_dataset.py  【dataset名】  【1. のパス】
+      ```
+      - `【dataset名】` は自分で決める。
+      - オプションで以下を追加できる。
+        - `-m`
+          - `data_in/datas/【dataset名】` ディレクトリがすでに存在する場合、削除しない（データをマージする）
+        - `-r`
+          - `【1. のパス】` 以下を、再帰的に探索する。
+
+  3. アノテーション画像を生成する。
+      ```
+      $ cd data_in
+      $ python3 draw_annot_img.py  datas/【dataset名】
+      ```
+      - セグメンテーション画像ファイルが `data_in/datas/【dataset名】/annot_img` に生成される。
+  4. TFRecode を生成する。
+      ```
+      $ python3 create_pascal_tf_record.py  datas/【dataset名】
+      ```
 
 
-
-### モデル（転移学習用） を準備
-1. `ini_checkpoints/resnet_v2_50` ディレクトリを作る。
-2. tensorflowの[slim](https://github.com/tensorflow/models/tree/master/research/slim)から[resnet_v2_50_2017_04_14.tar.gz](http://download.tensorflow.org/models/resnet_v2_50_2017_04_14.tar.gz) をダウンロードして、1. に配置する。
 
 
 ### Training
@@ -63,7 +92,7 @@
     ```
 - 自分のデータセットを実行する場合
     ```bash
-    $ python3 train.py  【】
+    $ python3 train.py  data_in/datas/【dataset名】
     ```
 
 ## 技術的な話

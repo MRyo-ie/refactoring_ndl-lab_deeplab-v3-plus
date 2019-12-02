@@ -25,14 +25,12 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser()
 # [データ] TFRecode の場所
-parser.add_argument('data_dir_parent', type=str, default='./data_in/datas_test/',
-                    help='Path to the directory containing the PASCAL VOC data tf record.')
-parser.add_argument('data_dir_name', type=str, default='./data_in/datas_test/',
+parser.add_argument('data_dir', type=str, default='./data_in/datas_test/',
                     help='Path to the directory containing the PASCAL VOC data tf record.')
 # [モデル]
 parser.add_argument('--model_dir', type=str, default='./models/ckpts',
                     help='Base directory for the model.')
-parser.add_argument('--pre_trained_model', type=str, default='./models/resnet_org/resnet_v2_50.ckpt',
+parser.add_argument('--pre_trained_model', type=str, default='./models/org_resnet/resnet_v2_50.ckpt',
                     help='Path to the pre-trained model checkpoint.')
 parser.add_argument('--init_model_dir', action='store_true',
                     help='Whether to clean up the model directory if present.')
@@ -212,7 +210,9 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
 
 
 def main(unused_argv):
-    # 各path の細かい修正
+    # 各path の調整
+    dataset_name = os.path.basename(FLAGS.data_dir)
+    FLAGS.model_dir = os.path.join(FLAGS.model_dir, dataset_name)
 
     # Using the Winograd non-fused algorithms provides a small performance boost.
     os.environ['TF_ENABLE_WINOGRAD_NONFUSED'] = '1'
