@@ -8,7 +8,6 @@ from __future__ import print_function
 import argparse
 import io
 import os
-os.getcwd()
 import sys
 import PIL.Image
 import tensorflow as tf
