@@ -12,6 +12,7 @@ os.getcwd()
 import sys
 import PIL.Image
 import tensorflow as tf
+from tqdm import tqdm
 
 from utils import dataset_util
 
@@ -91,9 +92,7 @@ def create_tf_record(output_filename,
       examples: Examples to parse and save to tf record.
     """
     writer = tf.python_io.TFRecordWriter(output_filename)
-    for idx, example in enumerate(examples):
-        if idx % 100 == 0:
-            tf.logging.info('On image %d of %d', idx, len(examples))
+    for example in tqdm(examples):
         image_path = os.path.join(image_dir, example)
         label_path = os.path.join(label_dir, example)
 
@@ -109,8 +108,9 @@ def create_tf_record(output_filename,
         try:
             tf_example = dict_to_tf_example(image_path, label_path)
             writer.write(tf_example.SerializeToString())
-        except ValueError:
-            tf.logging.warning('Invalid example: %s, ignoring.', example)
+        except ValueError as e:
+            print(e)
+            # tf.logging.warning('Invalid example: %s, ignoring.', example)
 
     writer.close()
 

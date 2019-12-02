@@ -43,7 +43,7 @@
     $ cd data_in
     $ python draw_annot_img.py  【dataset名】
     ```
-    で、セグメンテーション画像ファイルが`data_in/annot_img`に生成される。
+    で、セグメンテーション画像ファイルが`data_in/datas/【dataset名】/annot_img`に生成される。
 4. tensorflow で扱い易いように、TFRecode に変換する。
     ```
     $ python create_pascal_tf_record.py  【dataset名】
@@ -57,11 +57,14 @@
 
 
 ### Training
-```bash
-$ python3 create_pascal_tf_record.py
-$ python3 train_3class_50.py
-```
-を実行すると学習が始まります。
+- デモ版（「解体新書」2クラス）を実行する場合
+    ```bash
+    $ python3 train.py
+    ```
+- 自分のデータセットを実行する場合
+    ```bash
+    $ python3 train.py  【】
+    ```
 
 ## 技術的な話
 - `create_pascal_tf_record.py` で TFRecode を作成している。

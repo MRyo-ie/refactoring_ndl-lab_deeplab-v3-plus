@@ -111,7 +111,7 @@ ENV/
 
 
 ###  データセット関係  ###
-data_in/user_datas/
+data_in/datas/
 *.record
 
 data_out/**/*.png
