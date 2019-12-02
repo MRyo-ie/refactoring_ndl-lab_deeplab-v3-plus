@@ -54,11 +54,11 @@ def draw(data_dir_name):
                     for y in range(ymin, ymax):
                         for x in range(xmin, xmax):
                             # 1_overall よりは下（隠れる）
-                            annotimg[y, x] = max(150, annotimg[y, x])
+                            annotimg[y, x] = max(1, annotimg[y, x])
                 elif class_name != "1_overall":
                     for y in range(ymin, ymax):
                         for x in range(xmin, xmax):
-                            annotimg[y, x] = 200
+                            annotimg[y, x] = 2
                 # else:
                 #     o_xmin, o_xmax, o_ymin, o_ymax = xmin, xmax, ymin, ymax
             except:

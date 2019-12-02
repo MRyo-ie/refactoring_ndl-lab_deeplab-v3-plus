@@ -79,8 +79,8 @@ parser.add_argument('--tensorboard_images_max_outputs', type=int, default=6,
 
 
 _NUM_CLASSES = 3
-_HEIGHT = 600
-_WIDTH = 600
+_HEIGHT = 300
+_WIDTH = 300
 _DEPTH = 3
 _MIN_SCALE = 0.9
 _MAX_SCALE = 1.3
@@ -90,6 +90,22 @@ _POWER = 0.9
 _MOMENTUM = 0.9
 
 _BATCH_NORM_DECAY = 0.9997
+
+print('''
+_NUM_CLASSES = {}
+_HEIGHT = {}
+_WIDTH = {}
+_DEPTH = {}
+_MIN_SCALE = {}
+_MAX_SCALE = {}
+_IGNORE_LABEL = {}
+
+_POWER = {}
+_MOMENTUM = {}
+
+_BATCH_NORM_DECAY = {}
+'''.format(_NUM_CLASSES,_HEIGHT,_WIDTH,_DEPTH,_MIN_SCALE,_MAX_SCALE,
+            _IGNORE_LABEL,_POWER,_MOMENTUM,_BATCH_NORM_DECAY,))
 
 _NUM_IMAGES = {
     'train': 1600,

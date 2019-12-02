@@ -90,7 +90,9 @@
 ## Training
 - デモ版（「解体新書」2クラス）を実行する場合
     ```bash
-    $ python3 train.py  data_in/datas/datas_test
+    $ python3 train.py  \
+            data_in/datas/datas_test \
+            --batch_size=1
     ```
 - 自分のデータセットを実行する場合
     ```bash
