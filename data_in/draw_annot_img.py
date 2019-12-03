@@ -68,8 +68,6 @@ def draw(data_dir_name):
                     width, height  :  {}, {}
                     xmin, xmax, ymin, ymax  :  {}, {}, {}, {}
                     '''.format(filename, class_name, width, height, xmin, xmax, ymin, ymax))
-                print(width, height)
-                print(xmin, xmax, ymin, ymax)
         if random.random() < 0.1:
             fv.write(imgfilename + "\n")
         else:

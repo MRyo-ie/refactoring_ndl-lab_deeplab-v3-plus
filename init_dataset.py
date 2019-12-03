@@ -86,7 +86,7 @@ if __name__ == '__main__':
         cp_fpath = os.path.join('img', os.path.basename(p))
         if os.path.exists(cp_fpath):
             continue
-        shutil.copy(os.path.join(org_data_dir,p), cp_fpath)
+        shutil.copy(os.path.join(org_data_dir, p), cp_fpath)
     
     # -a を実行
     print('[Info] data_in/ へのコピーが完了しました。')

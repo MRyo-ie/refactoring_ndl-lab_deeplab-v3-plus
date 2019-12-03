@@ -79,8 +79,8 @@ parser.add_argument('--tensorboard_images_max_outputs', type=int, default=6,
 
 
 _NUM_CLASSES = 3
-_HEIGHT = 300
-_WIDTH = 300
+_HEIGHT = 600
+_WIDTH = 600
 _DEPTH = 3
 _MIN_SCALE = 0.9
 _MAX_SCALE = 1.3
