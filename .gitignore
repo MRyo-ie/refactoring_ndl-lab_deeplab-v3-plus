@@ -112,7 +112,7 @@ ENV/
 
 ###  データセット関係  ###
 data_in/datas/
-data_in/datas_test/annot_img
+data_in/datas_demo/annot_img
 *.record
 
 data_out/**/*.png
