@@ -25,7 +25,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser()
 # [データ] TFRecode の場所
-parser.add_argument('data_dir', type=str, default='./data_in/datas_test/',
+parser.add_argument('data_dir', type=str, default='./data_in/datas_demo/',
                     help='Path to the directory containing the PASCAL VOC data tf record.')
 # [モデル]
 parser.add_argument('--model_dir', type=str, default='./models/ckpts',
@@ -78,7 +78,7 @@ parser.add_argument('--tensorboard_images_max_outputs', type=int, default=6,
                     help='Max number of batch elements to generate for Tensorboard.')
 
 
-_NUM_CLASSES = 3
+_NUM_CLASSES = 4
 _HEIGHT = 600
 _WIDTH = 600
 _DEPTH = 3

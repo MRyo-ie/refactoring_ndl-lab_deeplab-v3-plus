@@ -52,15 +52,17 @@
 
 ### 他の or 自作の データの場合
 - pascal VOC形式の xml フォーマットで、アノテーションを付与する。
-- データの移動
-  - `data_in/datas/【dataset名】/` 以下に、`img`、`xml` ディレクトリを作って、そこにデータを入れる。
-    - 手動で行っても良いが、自動で行うスクリプトを作ったので、それを使っても良い。
-    1. データのパスを確認する。
+- データを、作業ディレクトリにコピー
+  - `data_in/datas/【dataset名】/` 以下に「`img`」「`xml`」 ディレクトリを作って、そこにデータを入れる。
+    - `data_in/datas_demo/` が参考になるはず。
+  - 手動で行っても良いが、自動で行うスクリプトを作ったので、それを使っても良い。
+    1. 元データのパスを確認する。
         - .zip や .tar.gz の場合は、先に解凍しておく。
         - 相対バスを指定する場合は、この README.md がある位置を基準とする。
-    2. Pascal VOC 形式の xml を `data_in/datas/【dataset名】/xml` に、画像を`data_in/datas/【dataset名】/img` にコピー。
+    2. スクリプトを使って、作業ディレクトリにコピーする。
         ```
-        $ python3 init_dataset.py  【1. のパス】  datas/【dataset名】 
+        $ cd data_in
+        $ python3 copy_dataset.py  【1. のパス】  datas/【dataset名】 
         ```
         - `【dataset名】` は自分で決める。
         - オプションで以下を追加できる。
@@ -68,10 +70,10 @@
             - `data_in/datas/【dataset名】` ディレクトリがすでに存在する場合、コピーをスキップする。（削除しない）
           - `-r`
             - `【1. のパス】` 以下を、再帰的に探索する。
-          - `-a`
-            - データ生成の全ての工程を、一気に（同時に）実行する。
-            - これをつけた場合は、以下の「教師データ生成」は実行しなくてOK
-            - エラーが出た場合は、↓以下の２つを再度実行すれば OK
+          - ~~`-a`~~
+            - ~~データ生成の全ての工程を、一気に（同時に）実行する。~~
+            - ~~これをつけた場合は、以下の「教師データ生成」は実行しなくてOK~~
+            - ~~エラーが出た場合は、↓以下の２つを再度実行すれば OK~~
 - 教師データ生成
   1. アノテーション画像を生成する。
       ```
@@ -84,7 +86,10 @@
       $ python3 create_pascal_tf_record.py  datas/【dataset名】
       ```
 
-
+- `build_dataset.py` は、`copy_dataset.py` と `draw_annot_img.py` をまとめて実行するスクリプト。
+  - `copy_dataset.py`　を手動で行う（`copy_dataset.py` が使えない）状況の場合は、これを使う必要はない。
+  - `create_pascal_tf_record.py` は実行する必要がある。
+  - 引数は、`copy_dataset.py` と `draw_annot_img.py` をまとめたもの。
 
 
 ## Training
