@@ -29,13 +29,9 @@ parser.add_argument('--setting_dir_path', '-set_path', default='',
                     help='ラベル設定（_settings/）がすでにあるなら、そこからコピーします。')
 
 
-# xyリスト の 辞書を作る
-# （ここでやる）
-
-# 「クラス：番号」辞書と「xyリスト」 の辞書 を元に、教師画像を作成。
 
 
-# ラベルの順番を指定する csv ファイル（空）を作る
+# ラベル設定 を読み込み
 def load_label_setting(setting_dir_path=''):
     """
     【実装内容】
@@ -105,61 +101,72 @@ class IllegalLabelSettingException(Exception):
 def draw(data_dir, annotate_ext, setting_dir_path):
     os.chdir(data_dir)
 
-    # ラベル設定 を読み込み
+    # 「ラベル設定」 を読み込み
     label_order_list = load_label_setting(setting_dir_path)
     print(label_order_list)
 
-    # 全annotationファイルの パス（list）を取得
+    print('\n[Info] アノテーション画像の生成を開始します。')
+    # 全annotationファイルのパス（list）を取得
     filenames = glob.glob(os.path.join('annt', "*."+annotate_ext))
     random.shuffle(filenames)
     ft = open('train.txt', 'w')
     fv = open('val.txt', 'w')
 
-    print('\n[Info] アノテーション画像の生成を開始します。')
     for filename in tqdm(filenames):
         # xml に対応する画像を探す。（画像の拡張子に対応するため。本当は png に統一したいけど...）
         img_fname = os.path.basename(filename[:-3]) + "*"
         img_fpath = glob.glob(os.path.join('img', img_fname))[0]
         imgfilename = os.path.basename(img_fpath)
+
         try:
             tree = ET.parse(filename)
         except ET.ParseError as ex:
             print(ex, '\n    [Debug] filename : ', filename)
         root = tree.getroot()
+
         size_tree = root.find('size')
         width = int(size_tree.find('width').text)
         height = int(size_tree.find('height').text)
         annotate_img = np.zeros((height, width, 1), np.uint8)
 
+        # 「xyタプルの辞書」を作る
+        xy_dict = {}
         for object_tree in root.findall('object'):
             class_name = object_tree.find('name').text
-            xy = {
-                'xmin' : int(object_tree.find("bndbox").find("xmin").text),
-                'ymin' : int(object_tree.find("bndbox").find("ymin").text),
-                'xmax' : int(object_tree.find("bndbox").find("xmax").text),
-                'ymax' : int(object_tree.find("bndbox").find("ymax").text),
-            }
-            try:
-                # 1_overall|2_handwritten|3_typography|4_illustration|5_stamp|6_headline|7_caption|8_textline|9_table
-                # 3クラス版（）
-                if class_name == "4_illustration":
-                    for y in range(xy['ymin'], xy['ymax']):
-                        for x in range(xy['xmin'], xy['xmax']):
-                            # 一番下（隠れる）
-                            annotate_img[y, x] = max(1, annotate_img[y, x])
-                elif class_name != "1_overall":
-                    for y in range(xy['ymin'], xy['ymax']):
-                        for x in range(xy['xmin'], xy['xmax']):
-                            annotate_img[y, x] = 3
-                # 全クラス版
+            print(class_name)
+            # （ラベル設定）同じラベルとして見る ものは、label_order_list の最初の要素(idx==0)に統一する。
+            for row in label_order_list:
+                if class_name in row:
+                    class_name = row[0]
+            print(class_name)
+            if class_name not in xy_dict:
+                xy_dict[class_name] = []
+            
+            bndbox = object_tree.find("bndbox")
+            # xy = ((xmin, ymin), (xmax, ymax))
+            xy = (
+                (int(bndbox.find("xmin").text), int(bndbox.find("ymin").text)),
+                (int(bndbox.find("xmax").text), int(bndbox.find("ymax").text))
+            )
+            xy_dict[class_name].append(xy)
+        print(xy_dict)
+        
 
+        # 「ラベル設定リスト」と「xyタプルの辞書」 を元に、教師画像を作成。
+        for cls_idx in range(len(label_order_list)):
+            try:
+                # （ラベル設定）同じラベルとして見る ものは、label_order_list の最初の要素(idx==0)に統一する。
+                xys = xy_dict[label_order_list[cls_idx][0]]
+                print(xy)
+                # NumPyインデックススライス + ファンシーインデックス + 代入
+                annotate_img[xy[0], xy[1]] = cls_idx
             except:
                 print('\n---------------\n[Error] アノテーション画像の生成に失敗しました。')
                 print('''   file name : {}
                     class_name : {}
                     width, height  :  {}, {}
-                    xmin, xmax, ymin, ymax  :  {}, {}, {}, {}
-                    '''.format(filename, class_name, width, height, xy['xmin'], xy['xmax'], xy['ymin'], xy['ymax']))
+                    ((xmin, ymin), (xmax, ymax))  :  {}
+                    '''.format(filename, class_name, width, height, xy))
         if random.random() < 0.1:
             fv.write(imgfilename + "\n")
         else:
@@ -168,11 +175,6 @@ def draw(data_dir, annotate_ext, setting_dir_path):
     ft.close()
     fv.close()
 
-
-def labeling(class_name, xy, annotate_img):
-    for y in range(xy['ymin'], xy['ymax']):
-        for x in range(xy['xmin'], xy['xmax']):
-            annotate_img[y, x] = max(1, annotate_img[y, x])
 
 
 
