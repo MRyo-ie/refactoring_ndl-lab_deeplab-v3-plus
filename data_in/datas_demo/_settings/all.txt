@@ -1,0 +1,9 @@
+1_overall
+2_handwritten
+3_typography
+4_illustration
+5_stamp
+6_headline
+7_caption
+8_textline
+9_table

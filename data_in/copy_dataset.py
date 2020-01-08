@@ -59,7 +59,7 @@ def copy(org_data_dir, data_dir, annotate_ext, recursive, init_data_dir):
     # ディレクトリ作成
     os.makedirs(data_dir, exist_ok=True)
     os.chdir(data_dir)
-    print('[Info] 移動しました data_dir： ' + os.getcwd())
+    print('[Info] cd data_dir　→ ' + os.getcwd())
     if not os.path.exists('annt_img'):
         os.mkdir('annt_img')
         os.mkdir('annt')

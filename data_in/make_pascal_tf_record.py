@@ -28,7 +28,7 @@ parser.add_argument('--valid_data_list', type=str, default='./val.txt',
                     help='Path to the file listing the validation data.')
 parser.add_argument('--image_data_dir', type=str, default='./img',
                     help='The directory containing the image data.')
-parser.add_argument('--label_data_dir', type=str, default='./annot_img',
+parser.add_argument('--label_data_dir', type=str, default='./annt_img',
                     help='The directory containing the augmented label data.')
 
 

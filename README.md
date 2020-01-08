@@ -78,9 +78,51 @@
   1. アノテーション画像を生成する。
       ```
       $ cd data_in
-      $ python3 draw_annot_img.py  datas/【dataset名】
+      $ python3 draw_annot_img.py  datas/【dataset名】 -set_path 【_settings/ のパス】
       ```
       - セグメンテーション画像ファイルが `data_in/datas/【dataset名】/annot_img` に生成される。
+      - `-set_path`
+        - 「使用するラベル」「ラベルの順番」を指定するための `_settings/` がすでにあるなら、そのパスを指定する。（作業ディレクトリにコピーされる）
+        - 初めての場合は、このオプションは使わない。
+          - 未指定の場合は、`_settings/` が新規作成される。
+          - 新規作成されたら、そこで一旦スクリプトが終了するので、設定ファイルを編集する。
+          - 以下のようにして書き込む。
+            - `all.txt`
+              - 全てのラベル名を書き込む
+              - 1ラベルごとに改行する。
+              - 例） datas_demo
+                ```
+                1_overall
+                2_handwritten
+                3_typography
+                4_illustration
+                5_stamp
+                6_headline
+                7_caption
+                8_textline
+                9_table
+                ```
+            - `set_order.csv`
+              - 「使用するラベル」「ラベルの順番」 を指定する。
+              - 「使用するラベル」
+                - 学習したいラベルだけを書く。
+                - 書かなかったラベルは、アノテーション画像には追加されない。
+              - 「ラベルの順番」
+                - 重なった時に、どのラベルが上に来る（優先される）かを指定する。
+                - １行目が一番**下**の層。
+                - 最終行が一番**上**の層。
+              - 例）datas_demo
+                ```
+                1_overall
+                4_illustration
+                2_handwritten,3_typography
+                8_textline
+                6_headline,7_caption
+                9_table
+                ```
+                - `5_stamp` を除外し、2と3、6と8 を同じラベルとして扱う設定例。
+                - この例のラベルの次元数は 6。
+                - 2次元配列として読み込まれる。
   2. TFRecode を生成する。
       ```
       $ python3 create_pascal_tf_record.py  datas/【dataset名】
@@ -103,7 +145,6 @@
     ```bash
     $ python3 train.py  data_in/datas/【dataset名】
     ```
-
 
 
 # original リポジトリ情報

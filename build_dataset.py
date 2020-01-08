@@ -33,6 +33,9 @@ parser.add_argument('--skip_copy', '-not_cp',  action='store_true',
                     help='copy 処理をスキップします。')
 parser.add_argument('--init_data_dir', '-init',  action='store_true', 
                     help='すでに data_dir が存在する場合、削除します。 default： True')
+parser.add_argument('--setting_dir_path', '-set_path', default='', 
+                    help='ラベル設定（_settings/）がすでにあるなら、そこからコピーします。')
+
 
 
 if __name__ == "__main__":
@@ -56,5 +59,6 @@ if __name__ == "__main__":
         print('[Info] コピー処理はスキップされました。')
 
     print('[Info] draw_annot_img')
-    draw_annot_img.draw(args.annotate_ext)
+    draw_annot_img.draw(data_dir, args.annotate_ext, args.setting_dir_path)
+    print('\n')
 
