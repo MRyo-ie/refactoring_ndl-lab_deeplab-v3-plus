@@ -10,8 +10,10 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import cv2
+from multiprocessing import Process
 import numpy as np
 import pandas as pd
+import time
 from tqdm import tqdm
 
 """
@@ -65,7 +67,7 @@ def load_label_setting(setting_dir_path=''):
         if setting_dir_path != '':
             if os.path.basename(setting_dir_path) != '_settings':
                 raise IllegalLabelSettingException('_settings/ のパスが不正です。', setting_dir_path)
-            shutil.copytree(setting_dir_path, './')
+            shutil.copytree(setting_dir_path, './_settings')
         else:
             ##  初回  ##
             print('[Info] _settings ファイルが見つかりませんでした。新規作成します。')
@@ -97,83 +99,115 @@ class IllegalLabelSettingException(Exception):
     pass
 
 
-
 def draw(data_dir, annotate_ext, setting_dir_path):
     os.chdir(data_dir)
 
     # 「ラベル設定」 を読み込み
     label_order_list = load_label_setting(setting_dir_path)
-    print(label_order_list)
+    print('[Info] 【ラベル設定】', end='')
+    print(*label_order_list, sep='\n    ')
 
     print('\n[Info] アノテーション画像の生成を開始します。')
     # 全annotationファイルのパス（list）を取得
-    filenames = glob.glob(os.path.join('annt', "*."+annotate_ext))
-    random.shuffle(filenames)
-    ft = open('train.txt', 'w')
-    fv = open('val.txt', 'w')
+    anntfs = glob.glob(os.path.join('annt', "*."+annotate_ext))
+    random.shuffle(anntfs)
+    os.makedirs('annt_img', exist_ok=True)
 
-    for filename in tqdm(filenames):
+    epoch = -1
+    # time_make_dict = 0
+    # time_make_annt_img = 0
+    # time_write_img = 0
+    p_list = []
+    train_files = []
+    val_files = []
+    for anntf in tqdm(anntfs[:epoch]):
         # xml に対応する画像を探す。（画像の拡張子に対応するため。本当は png に統一したいけど...）
-        img_fname = os.path.basename(filename[:-3]) + "*"
+        img_fname = os.path.basename(anntf[:-3]) + "*"
         img_fpath = glob.glob(os.path.join('img', img_fname))[0]
-        imgfilename = os.path.basename(img_fpath)
+        imgf = os.path.basename(img_fpath)
+        # multiprocessing で並列処理する。
+        p = Process(target=annotate_process, args=[anntf, imgf, label_order_list])
+        p.start()
+        p_list.append(p)
+        ### 学習用とテスト用に分割
+        if random.random() < 0.1:
+            val_files.append(imgf + '\n')
+        else:
+            train_files.append(imgf + '\n')
+    for p in tqdm(p_list):
+        p.join()
 
-        try:
-            tree = ET.parse(filename)
-        except ET.ParseError as ex:
-            print(ex, '\n    [Debug] filename : ', filename)
-        root = tree.getroot()
+    with open('train.txt', 'w') as ft:
+            ft.writelines(train_files)
+    with open('val.txt', 'w') as fv:
+            fv.writelines(val_files)
 
-        size_tree = root.find('size')
-        width = int(size_tree.find('width').text)
-        height = int(size_tree.find('height').text)
-        annotate_img = np.zeros((height, width, 1), np.uint8)
+    # print('[Info] time_make_dict     : ', time_make_dict)
+    # print('[Info] time_make_annt_img : ', time_make_annt_img)
+    # print('[Info] time_write_img     : ', time_write_img)
+    """
+    100% 100/100 [00:03<00:00, 27.02it/s]
+    [Info] time_make_dict     :  0.010479927062988281
+    [Info] time_make_annt_img :  0.1326291561126709
+    [Info] time_write_img     :  2.363025426864624
 
-        # 「xyタプルの辞書」を作る
-        xy_dict = {}
-        for object_tree in root.findall('object'):
-            class_name = object_tree.find('name').text
-            print(class_name)
-            # （ラベル設定）同じラベルとして見る ものは、label_order_list の最初の要素(idx==0)に統一する。
-            for row in label_order_list:
-                if class_name in row:
-                    class_name = row[0]
-            print(class_name)
-            if class_name not in xy_dict:
-                xy_dict[class_name] = []
-            
-            bndbox = object_tree.find("bndbox")
-            # xy = ((xmin, ymin), (xmax, ymax))
-            xy = (
-                (int(bndbox.find("xmin").text), int(bndbox.find("ymin").text)),
-                (int(bndbox.find("xmax").text), int(bndbox.find("ymax").text))
-            )
-            xy_dict[class_name].append(xy)
-        print(xy_dict)
+    100% 100/100 [00:03<00:00, 30.10it/s]
+    [Info] time_make_dict     :  0.019048690795898438
+    [Info] time_make_annt_img :  0.0998697280883789
+    [Info] time_write_img     :  1.9962170124053955
+    """
+
+
+def annotate_process(anntf, imgf, label_order_list):
+    try:
+        tree = ET.parse(anntf)
+    except ET.ParseError as ex:
+        print(ex, '\n    [Debug] anntf : ', anntf)
+    root = tree.getroot()
+
+    # 「xyタプルの辞書」を作る
+    xy_dict = {}
+    for object_tree in root.findall('object'):
+        class_name = object_tree.find('name').text
+        # （ラベル設定）同じラベルとして見る ものは、label_order_list の最初の要素(idx==0)に統一する。
+        for row in label_order_list:
+            if class_name in row:
+                class_name = row[0]
+        if class_name not in xy_dict:
+            xy_dict[class_name] = []
         
+        bndbox = object_tree.find("bndbox")
+        # xy = ((xmin, ymin), (xmax, ymax))
+        xy = (
+            ( int(bndbox.find("xmin").text), int(bndbox.find("xmax").text) ),
+            ( int(bndbox.find("ymin").text), int(bndbox.find("ymax").text) )
+        )
+        xy_dict[class_name].append(xy)
 
-        # 「ラベル設定リスト」と「xyタプルの辞書」 を元に、教師画像を作成。
-        for cls_idx in range(len(label_order_list)):
+    # 「ラベル設定リスト」と「xyタプルの辞書」 を元に、教師画像を作成。
+    size_tree = root.find('size')
+    width = int(size_tree.find('width').text)
+    height = int(size_tree.find('height').text)
+    annotate_img = np.zeros((height, width, 1), np.uint8)
+    for cls_idx in range(1, len(label_order_list)):
+        # （ラベル設定）同じラベルとして見る ものは、label_order_list の最初の要素(idx==0)に統一する。
+        cls_name = label_order_list[cls_idx][0]
+        if cls_name in xy_dict:
+            xys = xy_dict[cls_name]
             try:
-                # （ラベル設定）同じラベルとして見る ものは、label_order_list の最初の要素(idx==0)に統一する。
-                xys = xy_dict[label_order_list[cls_idx][0]]
-                print(xy)
-                # NumPyインデックススライス + ファンシーインデックス + 代入
-                annotate_img[xy[0], xy[1]] = cls_idx
+                for x, y in xys:
+                    # NumPyインデックススライス + 代入
+                    annotate_img[y[0]:y[1], x[0]:x[1]] = cls_idx   * 25  # 画像として見たいなら、コメントを外す。
+                    # print(annotate_img[y[0]:y[1], x[0]:x[1]])
             except:
                 print('\n---------------\n[Error] アノテーション画像の生成に失敗しました。')
                 print('''   file name : {}
                     class_name : {}
                     width, height  :  {}, {}
-                    ((xmin, ymin), (xmax, ymax))  :  {}
-                    '''.format(filename, class_name, width, height, xy))
-        if random.random() < 0.1:
-            fv.write(imgfilename + "\n")
-        else:
-            ft.write(imgfilename + "\n")
-        cv2.imwrite(os.path.join("annt_img", imgfilename), annotate_img)
-    ft.close()
-    fv.close()
+                    ((xmin, xmax), (ymin, ymax))  :  {}
+                    '''.format(anntf, class_name, width, height, xy))
+
+    cv2.imwrite(os.path.join("annt_img", imgf), annotate_img)
 
 
 

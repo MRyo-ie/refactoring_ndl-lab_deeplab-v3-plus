@@ -43,9 +43,17 @@ if __name__ == "__main__":
 
     os.chdir('data_in')
     print(os.getcwd())
-    # 絶対パスに変換
+
+    ### 絶対パスに変換
+    # args.data_dir
     DATA_HOME_DIR = os.getcwd()
     data_dir = os.path.join(DATA_HOME_DIR, args.data_dir)
+    # args.setting_dir_path
+    setting_dir_path = args.setting_dir_path
+    if args.setting_dir_path != '':
+        setting_dir_path = os.path.abspath(args.setting_dir_path)
+
+    ### 処理開始
     print('\n=====  {}  ====='.format(args.data_dir))
     print('[Info] copy_dataset')
     if not args.skip_copy or not os.path.exists(args.data_dir):
@@ -59,6 +67,7 @@ if __name__ == "__main__":
         print('[Info] コピー処理はスキップされました。')
 
     print('[Info] draw_annot_img')
-    draw_annot_img.draw(data_dir, args.annotate_ext, args.setting_dir_path)
+    print('[Info] setting_dir_path : {}'.format(setting_dir_path))
+    draw_annot_img.draw(data_dir, args.annotate_ext, setting_dir_path)
     print('\n')
 

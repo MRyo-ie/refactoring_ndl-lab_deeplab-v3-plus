@@ -78,7 +78,7 @@ parser.add_argument('--tensorboard_images_max_outputs', type=int, default=6,
                     help='Max number of batch elements to generate for Tensorboard.')
 
 
-_NUM_CLASSES = 4
+_NUM_CLASSES = 7
 _HEIGHT = 600
 _WIDTH = 600
 _DEPTH = 3

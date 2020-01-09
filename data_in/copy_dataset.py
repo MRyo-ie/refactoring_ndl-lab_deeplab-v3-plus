@@ -61,9 +61,9 @@ def copy(org_data_dir, data_dir, annotate_ext, recursive, init_data_dir):
     os.chdir(data_dir)
     print('[Info] cd data_dir　→ ' + os.getcwd())
     if not os.path.exists('annt_img'):
-        os.mkdir('annt_img')
-        os.mkdir('annt')
-        os.mkdir('img')
+        os.makedirs('annt_img', exist_ok=True)
+        os.makedirs('annt', exist_ok=True)
+        os.makedirs('img', exist_ok=True)
     
     ###  data_in/ 以下にコピー  ###
     print('[Info] {} のコピーを開始します'.format(annotate_ext))
