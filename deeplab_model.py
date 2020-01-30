@@ -306,8 +306,10 @@ def deeplabv3_plus_model_fn(features, labels, mode, params):
     iou = tf.div(cm_diag, denominator)
 
     for i in range(params['num_classes']):
-      tf.identity(iou[i], name='train_iou_class{}'.format(i))
-      tf.summary.scalar('train_iou_class{}'.format(i), iou[i])
+        tf.identity(iou[i], name='train_iou_'+params['label_order_list'][i])
+        tf.summary.scalar('train_iou_'+params['label_order_list'][i], iou[i])
+        # tf.identity(iou[i], name='train_iou_class{}'.format(i))
+        # tf.summary.scalar('train_iou_class{}'.format(i), iou[i])
 
     # If the number of valid entries is 0 (no classes) we return 0.
     result = tf.where(

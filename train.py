@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 import argparse
+import csv
 import os
 import sys
 import shutil
@@ -76,14 +77,15 @@ parser.add_argument('--debug', action='store_true',
                     help='Whether to use debugger to track down bad values during training.')
 parser.add_argument('--tensorboard_images_max_outputs', type=int, default=6,
                     help='Max number of batch elements to generate for Tensorboard.')
+parser.add_argument('--train_mode', '-t_opt', type=str, default='',
+                    help='ラベル設定で切り分けたいときに、ckpts/ のディレクトリ名に追加する文字列')
 
 
-_NUM_CLASSES = 7
-_HEIGHT = 600
-_WIDTH = 600
+_HEIGHT = 1200
+_WIDTH = 800
 _DEPTH = 3
-_MIN_SCALE = 0.9
-_MAX_SCALE = 1.3
+_MIN_SCALE = 0.8
+_MAX_SCALE = 1.1
 _IGNORE_LABEL = 255
 
 _POWER = 0.9
@@ -92,7 +94,6 @@ _MOMENTUM = 0.9
 _BATCH_NORM_DECAY = 0.9997
 
 print('''
-_NUM_CLASSES = {}
 _HEIGHT = {}
 _WIDTH = {}
 _DEPTH = {}
@@ -104,7 +105,7 @@ _POWER = {}
 _MOMENTUM = {}
 
 _BATCH_NORM_DECAY = {}
-'''.format(_NUM_CLASSES,_HEIGHT,_WIDTH,_DEPTH,_MIN_SCALE,_MAX_SCALE,
+'''.format(_HEIGHT,_WIDTH,_DEPTH,_MIN_SCALE,_MAX_SCALE,
             _IGNORE_LABEL,_POWER,_MOMENTUM,_BATCH_NORM_DECAY,))
 
 _NUM_IMAGES = {
@@ -226,15 +227,43 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
 
 
 def main(unused_argv):
-    # 各path の調整
+    ###  パスやラベル設定、フラグなどの調整  ###
+    num_classes = -1
+    settings_from = os.path.join(FLAGS.data_dir, '_settings')
+    all_labels = label_order_list = []
+    with open(os.path.join(settings_from, 'all.txt'), 'r') as all_f:
+        all_labels = [line.strip() for line in all_f if line.strip()]
+        print('[Info] all_labels : ', all_labels)
+        with open(os.path.join(settings_from, 'set_order.csv'), 'r') as order_f:
+            label_order_list = [r for r in csv.reader(order_f) if len(r) > 0]
+            print('[Info] label_order_list : ', label_order_list)
+            # 同じとしてみなすラベルは、先頭だけ確認すれば十分。
+            order_classes = [['Background']]
+            label_order_list = order_classes + [line for line in label_order_list if line[0] in all_labels]
+            num_classes = len(label_order_list)
+            print('[Info] num_classes : ', num_classes)
+    print('[Info] label_order_list : ', [','.join(labels) for labels in label_order_list])
+    
+    # model_dir の名前を調整
     dataset_name = os.path.basename(FLAGS.data_dir)
-    FLAGS.model_dir = os.path.join(FLAGS.model_dir, dataset_name)
+    FLAGS.model_dir = os.path.join(
+                            FLAGS.model_dir,
+                            dataset_name,
+                            '{}-clss{}'.format(FLAGS.train_mode, num_classes))
+    # 初期化フラグ回収。
+    if FLAGS.init_model_dir:
+        shutil.rmtree(FLAGS.model_dir, ignore_errors=True)
+    if not os.path.exists(FLAGS.model_dir):
+        os.mkdir(FLAGS.model_dir)
+    
+    # _settings/ を、ckpt にコピー
+    settings_to = os.path.join(FLAGS.model_dir, '_settings')
+    if not os.path.exists(settings_to):
+        shutil.copytree(settings_from, settings_to)
 
     # Using the Winograd non-fused algorithms provides a small performance boost.
     os.environ['TF_ENABLE_WINOGRAD_NONFUSED'] = '1'
-
-    if FLAGS.init_model_dir:
-        shutil.rmtree(FLAGS.model_dir, ignore_errors=True)
+    print('\n\n')
 
     # Set up a RunConfig to only save checkpoints once per training cycle.
     run_config = tf.estimator.RunConfig().replace(save_checkpoints_secs=1e9)
@@ -248,7 +277,8 @@ def main(unused_argv):
             'base_architecture': FLAGS.base_architecture,
             'pre_trained_model': FLAGS.pre_trained_model,
             'batch_norm_decay': _BATCH_NORM_DECAY,
-            'num_classes': _NUM_CLASSES,
+            'num_classes': num_classes,
+            'label_order_list' : [','.join(labels) for labels in label_order_list],
             'tensorboard_images_max_outputs': FLAGS.tensorboard_images_max_outputs,
             'weight_decay': FLAGS.weight_decay,
             'learning_rate_policy': FLAGS.learning_rate_policy,

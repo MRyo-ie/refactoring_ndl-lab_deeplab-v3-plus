@@ -81,16 +81,17 @@ def load_label_setting(setting_dir_path=''):
         pass
     ##  2回目  ##
     # 設定ファイルを読み込む。 →　list 化する。
-    with open('_settings/all.txt', 'r') as all_f:
-        l_all = all_f.readlines()
-        if len(l_all) < 1:
+    os.chdir('_settings/')
+    with open('all.txt', 'r') as all_f:
+        if sum(1 for line in all_f if line.strip()) < 1:
             raise IllegalLabelSettingException('_settings/all.txt が空です。  label all : ', l_all)
-    with open('_settings/set_order.csv', 'r') as order_f:
+    with open('set_order.csv', 'r') as order_f:
         reader = csv.reader(order_f) # readerオブジェクトの作成
         label_order_list = [r for r in reader if len(r) > 0]
         if len(label_order_list) < 1:
             raise IllegalLabelSettingException('_settings/set_order.txt が空です。')
-    
+    os.chdir('..')
+
     label_order_list.insert(0, [])  # インデックスを対応させる（背景として扱う）ために、0番目は埋める
     return label_order_list
     
@@ -125,7 +126,7 @@ def draw(data_dir, annotate_ext, setting_dir_path):
         img_fname = os.path.basename(anntf[:-3]) + "*"
         img_fpath = glob.glob(os.path.join('img', img_fname))[0]
         imgf = os.path.basename(img_fpath)
-        # multiprocessing で並列処理する。
+        # 教師画像を作成（multiprocessing で並列処理する）。
         p = Process(target=annotate_process, args=[anntf, imgf, label_order_list])
         p.start()
         p_list.append(p)
@@ -197,7 +198,7 @@ def annotate_process(anntf, imgf, label_order_list):
             try:
                 for x, y in xys:
                     # NumPyインデックススライス + 代入
-                    annotate_img[y[0]:y[1], x[0]:x[1]] = cls_idx   * 25  # 画像として見たいなら、コメントを外す。
+                    annotate_img[y[0]:y[1], x[0]:x[1]] = cls_idx  # * 25  # 画像として見たいなら、コメントを外す。
                     # print(annotate_img[y[0]:y[1], x[0]:x[1]])
             except:
                 print('\n---------------\n[Error] アノテーション画像の生成に失敗しました。')
