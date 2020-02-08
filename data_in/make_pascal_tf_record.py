@@ -43,25 +43,32 @@ def dict_to_tf_example(image_path, label_path):
       example: The converted tf.Example.
 
     Raises:
-      ValueError: if the image pointed to by image_path is not a valid JPEG or
-                  if the label pointed to by label_path is not a valid PNG or
+      ValueError: 
+    #               if the image pointed to by image_path is not a valid JPEG or
+    #               if the label pointed to by label_path is not a valid PNG or
                   if the size of image does not match with that of label.
     """
     with tf.gfile.GFile(image_path, 'rb') as fid:
-        encoded_jpg = fid.read()
-    encoded_jpg_io = io.BytesIO(encoded_jpg)
-    image = PIL.Image.open(encoded_jpg_io)
-    if image.format != 'JPEG':
-        raise ValueError('Image format not JPEG')
+        encoded_img = fid.read()
+    encoded_img_io = io.BytesIO(encoded_img)
+    image = PIL.Image.open(encoded_img_io)
+    # if image.format != 'JPEG':
+    #     raise ValueError('Image format not JPEG')
+    img_ext = image_path.split('.')[-1]
 
     with tf.gfile.GFile(label_path, 'rb') as fid:
         encoded_label = fid.read()
     encoded_label_io = io.BytesIO(encoded_label)
     label = PIL.Image.open(encoded_label_io)
-    if label.format != 'JPEG':
-        raise ValueError('Label format not JPEG')
+    # if label.format != 'PNG':
+    #     raise ValueError('Label format not PNG')
+    lbl_ext = label_path.split('.')[-1]
 
     if image.size != label.size:
+        print('[Info]')
+        print('    image_path : ', image_path)
+        print('    label_path : ', label_path)
+        print('    image.size, label.size :  {}, {}'.format(image.size, label.size))
         raise ValueError(
             'The size of image does not match with that of label.')
 
@@ -70,10 +77,10 @@ def dict_to_tf_example(image_path, label_path):
     example = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
         'image/width': dataset_util.int64_feature(width),
-        'image/encoded': dataset_util.bytes_feature(encoded_jpg),
-        'image/format': dataset_util.bytes_feature('jpg'.encode('utf8')),
+        'image/encoded': dataset_util.bytes_feature(encoded_img),
+        'image/format': dataset_util.bytes_feature(img_ext.encode('utf8')),
         'label/encoded': dataset_util.bytes_feature(encoded_label),
-        'label/format': dataset_util.bytes_feature('jpg'.encode('utf8')),
+        'label/format': dataset_util.bytes_feature(lbl_ext.encode('utf8')),
     }))
     return example
 

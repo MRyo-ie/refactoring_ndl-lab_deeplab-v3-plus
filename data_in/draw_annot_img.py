@@ -2,6 +2,7 @@
 import argparse
 import csv
 import glob
+import json
 import os
 import random
 import shutil
@@ -123,11 +124,19 @@ def draw(data_dir, annotate_ext, setting_dir_path):
     val_files = []
     for anntf in tqdm(anntfs[:epoch]):
         # xml に対応する画像を探す。（画像の拡張子に対応するため。本当は png に統一したいけど...）
-        img_fname = os.path.basename(anntf[:-3]) + "*"
-        img_fpath = glob.glob(os.path.join('img', img_fname))[0]
+        img_fname = os.path.basename(anntf.split('.')[0]) + "*"
+        try:
+            img_fpath = glob.glob(os.path.join('img', img_fname))[0]
+        except IndexError as ex:
+            print(ex, '\n\n[Error] 画像の読み込みに失敗しました。')
+            print('[Error] ', os.path.join('img', img_fname), glob.glob(os.path.join('img', img_fname)))
+            sys.exit(1)
         imgf = os.path.basename(img_fpath)
         # 教師画像を作成（multiprocessing で並列処理する）。
-        p = Process(target=annotate_process, args=[anntf, imgf, label_order_list])
+        if annotate_ext == 'xml':
+            p = Process(target=annotate_xml, args=[anntf, imgf, label_order_list])
+        elif annotate_ext == 'json':
+            p = Process(target=annotate_json, args=[anntf, imgf, label_order_list])
         p.start()
         p_list.append(p)
         ### 学習用とテスト用に分割
@@ -135,6 +144,7 @@ def draw(data_dir, annotate_ext, setting_dir_path):
             val_files.append(imgf + '\n')
         else:
             train_files.append(imgf + '\n')
+
     for p in tqdm(p_list):
         p.join()
 
@@ -159,7 +169,8 @@ def draw(data_dir, annotate_ext, setting_dir_path):
     """
 
 
-def annotate_process(anntf, imgf, label_order_list):
+# xml
+def annotate_xml(anntf, imgf, label_order_list):
     try:
         tree = ET.parse(anntf)
     except ET.ParseError as ex:
@@ -209,6 +220,36 @@ def annotate_process(anntf, imgf, label_order_list):
                     '''.format(anntf, class_name, width, height, xy))
 
     cv2.imwrite(os.path.join("annt_img", imgf), annotate_img)
+
+
+# json（labelme）
+from utils.shape_labelme import get_img_shape, plot_annt_mask
+import PIL, PIL.ImageDraw
+def annotate_json(anntf, imgf, label_order_list):
+    """
+    json(labelme) データから、教師画像（グレースケール、ラベル番号）
+    ラベルの優先順位（最前面、最背面）は、labelme 側で指定される前提。
+    """
+    # json ファイル読み込み
+    data = json.load(open(anntf))
+
+    # 教師画像を作成。
+    width, height = get_img_shape(data)
+    mask = PIL.Image.new('L', (width, height))
+    anntPIL_draw = PIL.ImageDraw.Draw(mask)
+    for shape in data['shapes']:
+        label = shape['label']
+        for l_idx in range(1, len(label_order_list)):
+            # label_order_list にあれば、annotate_img:np.array に領域をプロットする。
+            if label in label_order_list[l_idx]:
+                points = shape['points']
+                shape_type = shape['shape_type']
+                # label 領域をプロットする。
+                plot_annt_mask(anntPIL_draw, points, shape_type, l_idx)
+                break
+    # np.array に戻す。
+    mask = np.array(mask)
+    cv2.imwrite(os.path.join("annt_img", imgf), mask)
 
 
 
