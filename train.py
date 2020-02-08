@@ -38,6 +38,11 @@ parser.add_argument('--init_model_dir', action='store_true',
 parser.add_argument('--base_architecture', type=str, default='resnet_v2_50',
                     choices=['resnet_v2_50', 'resnet_v2_101'],
                     help='The architecture of base Resnet building block.')
+# [モデル] 固定値
+parser.add_argument('--width', type=int, default=800,
+                    help='視野サイズ（横）。このサイズで画像がクロップされる。')
+parser.add_argument('--height', type=int, default=800,
+                    help='視野サイズ（縦）。このサイズで画像がクロップされる。')
 # [モデル] 学習係数など
 parser.add_argument('--learning_rate_policy', type=str, default='poly',
                     choices=['poly', 'piecewise'],
@@ -81,11 +86,11 @@ parser.add_argument('--train_mode', '-t_opt', type=str, default='',
                     help='ラベル設定で切り分けたいときに、ckpts/ のディレクトリ名に追加する文字列')
 
 
-_HEIGHT = 1200
-_WIDTH = 800
+_HEIGHT = 400
+_WIDTH = 400
 _DEPTH = 3
-_MIN_SCALE = 0.8
-_MAX_SCALE = 1.1
+_MIN_SCALE = 0.5
+_MAX_SCALE = 0.7
 _IGNORE_LABEL = 255
 
 _POWER = 0.9
@@ -93,20 +98,6 @@ _MOMENTUM = 0.9
 
 _BATCH_NORM_DECAY = 0.9997
 
-print('''
-_HEIGHT = {}
-_WIDTH = {}
-_DEPTH = {}
-_MIN_SCALE = {}
-_MAX_SCALE = {}
-_IGNORE_LABEL = {}
-
-_POWER = {}
-_MOMENTUM = {}
-
-_BATCH_NORM_DECAY = {}
-'''.format(_HEIGHT,_WIDTH,_DEPTH,_MIN_SCALE,_MAX_SCALE,
-            _IGNORE_LABEL,_POWER,_MOMENTUM,_BATCH_NORM_DECAY,))
 
 _NUM_IMAGES = {
     'train': 1600,
@@ -226,7 +217,23 @@ def input_fn(is_training, data_dir, batch_size, num_epochs=1):
     return images, labels
 
 
+
 def main(unused_argv):
+    print(
+        '''
+        _HEIGHT = {}
+        _WIDTH = {}
+        _DEPTH = {}
+        _MIN_SCALE = {}
+        _MAX_SCALE = {}
+        _IGNORE_LABEL = {}
+
+        _POWER = {}
+        _MOMENTUM = {}
+
+        _BATCH_NORM_DECAY = {}
+        '''.format(_HEIGHT,_WIDTH,_DEPTH,_MIN_SCALE,_MAX_SCALE,
+                    _IGNORE_LABEL,_POWER,_MOMENTUM,_BATCH_NORM_DECAY,))
     ###  パスやラベル設定、フラグなどの調整  ###
     num_classes = -1
     settings_from = os.path.join(FLAGS.data_dir, '_settings')
@@ -243,7 +250,7 @@ def main(unused_argv):
             num_classes = len(label_order_list)
             print('[Info] num_classes : ', num_classes)
     print('[Info] label_order_list : ', [','.join(labels) for labels in label_order_list])
-    
+
     # model_dir の名前を調整
     dataset_name = os.path.basename(FLAGS.data_dir)
     FLAGS.model_dir = os.path.join(
@@ -254,7 +261,7 @@ def main(unused_argv):
     if FLAGS.init_model_dir:
         shutil.rmtree(FLAGS.model_dir, ignore_errors=True)
     if not os.path.exists(FLAGS.model_dir):
-        os.mkdir(FLAGS.model_dir)
+        os.makedirs(FLAGS.model_dir)
     
     # _settings/ を、ckpt にコピー
     settings_to = os.path.join(FLAGS.model_dir, '_settings')
@@ -266,7 +273,9 @@ def main(unused_argv):
     print('\n\n')
 
     # Set up a RunConfig to only save checkpoints once per training cycle.
-    run_config = tf.estimator.RunConfig().replace(save_checkpoints_secs=1e9)
+    run_config = tf.estimator.RunConfig(
+                        save_checkpoints_secs=1e9,
+                        save_summary_steps=15)
     model = tf.estimator.Estimator(
         model_fn=deeplab_model.deeplabv3_plus_model_fn,
         model_dir=FLAGS.model_dir,
@@ -333,4 +342,8 @@ def main(unused_argv):
 if __name__ == '__main__':
     tf.logging.set_verbosity(tf.logging.ERROR)
     FLAGS, unparsed = parser.parse_known_args()
+    # 固定値の設定。
+    _WIDTH = FLAGS.width
+    _HEIGHT = FLAGS.height
+    # 学習実行！
     tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
